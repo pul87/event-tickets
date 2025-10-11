@@ -10,9 +10,9 @@ public static class SalesEndpoints
     {
         // POST /sales/reservations → 201
         group.MapPost("/reservations",
-            async (PlaceReservation cmd, IMediator mediator, CancellationToken ct) =>
+            async (PlaceReservationRequest  body, IMediator mediator, CancellationToken ct) =>
             {
-                var r = await mediator.Send(cmd, ct);
+                var r = await mediator.Send(new PlaceReservation(body.PerformanceId, body.Quantity), ct);
                 return TypedResults.Created($"/sales/reservations/{r.ReservationId}", r);
             })
             .Produces<ReservationPlaced>(StatusCodes.Status201Created)
@@ -50,3 +50,5 @@ public static class SalesEndpoints
         return group;
     }
 }
+
+public sealed record PlaceReservationRequest(Guid PerformanceId, int Quantity);
