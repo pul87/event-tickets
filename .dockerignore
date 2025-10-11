@@ -1,0 +1,70 @@
+# -----------------------
+# VCS / IDE / OS
+# -----------------------
+.git
+.gitignore
+.gitattributes
+.vs
+.idea
+.vscode
+*.suo
+*.user
+*.rsuser
+.DS_Store
+Thumbs.db
+
+# -----------------------
+# Build output / cache
+# -----------------------
+**/bin/
+**/obj/
+**/TestResults/
+**/*.trx
+**/*.coverage
+**/*.coveragexml
+
+# -----------------------
+# Node (se presente)
+# -----------------------
+**/node_modules/
+npm-debug.log*
+yarn-error.log*
+pnpm-lock.yaml
+
+# -----------------------
+# Logs & temp
+# -----------------------
+*.log
+logs/
+**/*.pid
+**/*.svclog
+
+# -----------------------
+# Config locali / segreti
+# (non servono in immagine)
+# -----------------------
+**/.env
+**/.env.*
+**/appsettings.Development.json
+**/appsettings.Local.json
+**/appsettings.*.local.json
+**/secrets.json
+**/*.secret.json
+**/*.secrets.json
+**/*.KeyVault.json
+UserSecrets/
+
+# -----------------------
+# Docker (file locali non necessari nel build context)
+# -----------------------
+docker-compose.yml
+docker-compose.*.yml
+docker-compose.override.yml
+**/docker-data/
+**/pgdata/
+
+# -----------------------
+# Coverage / tooling
+# -----------------------
+coverage*/
+lcov.info

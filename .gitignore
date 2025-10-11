@@ -1,0 +1,80 @@
+# ---------- OS ----------
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# ---------- .NET / build ----------
+[Bb]in/
+[Oo]bj/
+*.suo
+*.user
+*.rsuser
+*.userosscache
+*.sln.docstates
+*.cache/
+*.pidb
+*.svclog
+*.vsp
+*.vspx
+
+# NuGet (artefatti locali)
+*.nupkg
+*.snupkg
+# (di solito non serve, ma in caso di cartella locale)
+.nuget/
+
+# ---------- IDE ----------
+# Visual Studio
+.vs/
+
+# Rider / JetBrains
+.idea/
+*.DotSettings.user
+
+# VS Code (tieni solo consigli estensioni se le usi)
+.vscode/*
+!.vscode/extensions.json
+
+# ---------- Log / test / coverage ----------
+*.log
+logs/
+TestResults/
+*.trx
+*.coverage
+*.coveragexml
+coverage*/
+lcov.info
+
+# ---------- EF Core ----------
+# Manteniamo le Migration (NON ignorarle)
+# (nessuna entry specifica)
+
+# ---------- Config / segreti ----------
+appsettings.Development.json
+appsettings.Local.json
+appsettings.*.local.json
+secrets.json
+*.secret.json
+*.secrets.json
+*.KeyVault.json
+UserSecrets/
+.env
+.env.*
+
+# ---------- Docker ----------
+# override locale spesso solo dev
+docker-compose.override.yml
+# eventuali bind mount locali di dati (se li usi in futuro)
+**/pgdata/
+**/docker-data/
+
+# ---------- Node (se in futuro buildi asset front in wwwroot) ----------
+node_modules/
+npm-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+digest.txt
+notes.md
