@@ -6,10 +6,20 @@ using Microsoft.AspNetCore.OpenApi;
 var builder = WebApplication.CreateBuilder(args);
 
 // Infrastructure: DbContext + Repo + UoW
-builder.Services.AddTicketingModule(builder.Configuration.GetConnectionString("Default"));
+var conn = builder.Configuration.GetConnectionString("Default");
+if (string.IsNullOrWhiteSpace(conn))
+    throw new InvalidOperationException(@"
+        Missing DB connection string 'ConnectionStrings:Default'.
+        Add it to apsettings.json or set it via env var.
+    ");
+
+builder.Services.AddTicketingModule(conn);
 
 // Mediatr license key
-var mediatrKey = builder.Configuration["Mediatr:LicenseKey"];
+var mediatrKey =
+    builder.Configuration["MediatR:LicenseKey"] ??
+    // in caso di typo
+    builder.Configuration["Mediatr:LicenseKey"];
 
 // Application: registra tutti gli handler MediatR dall'assembly Application
 builder.Services.AddTicketingApplication(mediatrKey);
@@ -29,6 +39,14 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
+}
+
+if (app.Environment.IsProduction() && string.IsNullOrWhiteSpace(mediatrKey))
+{
+    app.Logger.LogWarning(
+        @"MediatR lincese key is missing in Production.
+        Set MEDIATR__LICENSEKEY or configuration 'MediatR:LicenseKey'
+        ");
 }
 
 app.MapGet("/health", () => new { ok = true, ts = DateTime.UtcNow })

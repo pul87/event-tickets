@@ -1,19 +1,18 @@
-using MediatR;
-
 namespace EventTickets.Shared;
 
+public interface IDomainEvent { }
 public interface IHasDomainEvents
 {
-    IReadOnlyCollection<INotification> DomainEvents { get; }
+    IReadOnlyCollection<IDomainEvent> DomainEvents { get; }
     void ClearDomainEvents();
 }
 
-public abstract class AggregateRoot<TId> : IHasDomainEvents
+public abstract class AggregateRoot<Tid> : IHasDomainEvents
 {
-    public TId Id { get; protected set; } = default!;
-    private readonly List<INotification> _domainEvents = new();
-    public IReadOnlyCollection<INotification> DomainEvents => _domainEvents.AsReadOnly();
-    protected void AddDomainEvent(INotification e) => _domainEvents.Add(e);
+    public Tid Id { get; protected set; } = default!;
+    private readonly List<IDomainEvent> _domainEvents = new();
+    public IReadOnlyCollection<IDomainEvent> DomainEvents => _domainEvents.AsReadOnly();
+    protected void AddDomainEvent(IDomainEvent e) => _domainEvents.Add(e);
     public void ClearDomainEvents() => _domainEvents.Clear();
 }
 
