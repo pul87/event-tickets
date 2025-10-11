@@ -1,0 +1,44 @@
+@baseUrl = http://localhost:5108
+@performanceId = 01357277-b89b-4a3a-a47b-0c8f46a6d0fd
+@reservationId = 0fea16a3-e16f-40f0-baa1-c2e85bc9d4e6
+@capacity = 5
+@newCapacity = 10
+@quantity = 3
+
+### Health
+GET {{baseUrl}}/health
+
+### Create Performance (201)
+POST {{baseUrl}}/inventory/performances
+Content-Type: application/json
+
+{
+  "performanceId": "{{performanceId}}",
+  "capacity": {{capacity}}
+}
+
+### Resize Capacity (204)
+PUT {{baseUrl}}/inventory/performances/{{performanceId}}/capacity
+Content-Type: application/json
+
+{
+  "newCapacity": {{newCapacity}}
+}
+
+### Get Inventory (200)
+GET {{baseUrl}}/inventory/performances/{{performanceId}}
+
+### Place Reservation (201)
+POST {{baseUrl}}/sales/reservations
+Content-Type: application/json
+
+{
+  "performanceId": "{{performanceId}}",
+  "quantity": {{quantity}}
+}
+
+### Confirm Reservation (204)
+POST {{baseUrl}}/sales/reservations/{{reservationId}}/confirm
+
+### Cancel Reservation (204)
+POST {{baseUrl}}/sales/reservations/{{reservationId}}/cancel

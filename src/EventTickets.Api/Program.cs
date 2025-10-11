@@ -5,11 +5,14 @@ using Microsoft.AspNetCore.OpenApi;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Infrastructure: DbContext + Repo + UoW (EF sta qui, non in API)
+// Infrastructure: DbContext + Repo + UoW
 builder.Services.AddTicketingModule(builder.Configuration.GetConnectionString("Default"));
 
+// Mediatr license key
+var mediatrKey = builder.Configuration["Mediatr:LicenseKey"];
+
 // Application: registra tutti gli handler MediatR dall'assembly Application
-builder.Services.AddTicketingApplication();
+builder.Services.AddTicketingApplication(mediatrKey);
 
 // API goodies
 builder.Services.AddEndpointsApiExplorer();
