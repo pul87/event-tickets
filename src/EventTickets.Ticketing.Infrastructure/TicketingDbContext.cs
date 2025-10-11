@@ -1,3 +1,4 @@
+using EventTickets.Shared;
 using EventTickets.Ticketing.Domain;
 using Microsoft.EntityFrameworkCore;
 
@@ -9,10 +10,11 @@ public sealed class TicketingDbContext : DbContext
 
     public DbSet<PerformanceInventory> PerformanceInventories => Set<PerformanceInventory>();
     public DbSet<Reservation> Reservations => Set<Reservation>();
+    public DbSet<Outbox.OutboxMessage> OutboxMessages => Set<Outbox.OutboxMessage>();
 
     protected override void OnModelCreating(ModelBuilder model)
     {
-        model.HasDefaultSchema("ticketing");
+        model.HasDefaultSchema(SchemaNames.Ticketing);
 
         // Inventory
         var pi = model.Entity<PerformanceInventory>();
@@ -32,5 +34,15 @@ public sealed class TicketingDbContext : DbContext
         r.Property(x => x.Status).HasConversion<string>().HasMaxLength(32).IsRequired();
         r.Property(x => x.CreatedAt).HasColumnType("timestamp with time zone");
         r.HasIndex(x => x.PerformanceId);
+
+        // Outbox
+        var ob = model.Entity<Outbox.OutboxMessage>();
+        ob.ToTable("outbox_messages");
+        ob.HasKey(x => x.Id);
+        ob.Property(x => x.Type).IsRequired().HasMaxLength(512);
+        ob.Property(x => x.Content).IsRequired();
+        ob.Property(x => x.OccurredOnUtc).IsRequired();
+        ob.Property(x => x.ProcessedOnUtc);
+        ob.Property(x => x.Error);
     }
 }

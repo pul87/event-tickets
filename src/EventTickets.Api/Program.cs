@@ -2,6 +2,7 @@ using EventTickets.Ticketing.Application;          // estensione AddTicketingApp
 using EventTickets.Ticketing.Infrastructure;       // AddTicketingModule (già presente)
 using EventTickets.Api.Endpoints;                  // classi statiche di mapping endpoints
 using Microsoft.AspNetCore.OpenApi;
+using EventTickets.Ticketing.Infrastructure.Outbox;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -30,6 +31,8 @@ builder.Services.AddSwaggerGen();
 
 // Middleware: mapping eccezioni → HTTP (già nel progetto)
 builder.Services.AddTransient<ExceptionMappingMiddleware>();
+// Outbox dispatcher
+builder.Services.AddHostedService<OutboxDispatcher>();
 
 var app = builder.Build();
 

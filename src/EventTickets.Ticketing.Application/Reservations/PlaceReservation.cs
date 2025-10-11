@@ -1,5 +1,6 @@
 using EventTickets.Shared;
 using EventTickets.Ticketing.Application.Abstractions;
+using EventTickets.Ticketing.Application.IntegrationEvents;
 using EventTickets.Ticketing.Domain;
 using MediatR;
 
@@ -16,12 +17,14 @@ public sealed class PlaceReservationHandler
     private readonly IPerformanceInventoryRepository _inventory;
     private readonly IReservationRepository _reservations;
     private readonly ITicketingUnitOfWork _uow;
+    private readonly IOutbox _outbox;
 
     public PlaceReservationHandler(
         IPerformanceInventoryRepository inventory,
         IReservationRepository reservations,
-        ITicketingUnitOfWork uow)
-        => (_inventory, _reservations, _uow) = (inventory, reservations, uow);
+        ITicketingUnitOfWork uow,
+        IOutbox outbox)
+        => (_inventory, _reservations, _uow, _outbox) = (inventory, reservations, uow, outbox);
 
     public async Task<ReservationPlaced> Handle(PlaceReservation cmd, CancellationToken ct)
     {
@@ -40,7 +43,12 @@ public sealed class PlaceReservationHandler
                 var res = Reservation.Place(cmd.PerformanceId, cmd.Quantity);
                 _reservations.Add(res);
 
+                // Enqueue integration event in the same transaction
+                await _outbox.EnqueueAsync(
+                    new ReservationPlacedIntegrationEvent(res.Id, res.PerformanceId, res.Quantity));
+
                 await _uow.SaveChangesAsync(ct);
+
                 return new ReservationPlaced(res.Id, res.PerformanceId, res.Quantity);
             }
             catch (ConcurrencyException)

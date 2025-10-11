@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using EventTickets.Ticketing.Application.Abstractions;
+using EventTickets.Ticketing.Infrastructure.Outbox;
 
 namespace EventTickets.Ticketing.Infrastructure;
 
@@ -14,6 +15,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ITicketingUnitOfWork, TicketingUnitOfWork>();
         services.AddScoped<IPerformanceInventoryRepository, PerformanceInventoryRepository>();
         services.AddScoped<IReservationRepository, ReservationRepository>();
+        services.AddScoped<IOutbox, EdOutbox>();
         return services;
     }
 }

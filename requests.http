@@ -1,9 +1,9 @@
 @baseUrl = http://localhost:5108
-@performanceId = 01357277-b89b-4a3a-a47b-0c8f46a6d0fd
+@performanceId = 01357277-b89b-4a3a-a47b-0c8f46a6d0f4
 @reservationId = 0fea16a3-e16f-40f0-baa1-c2e85bc9d4e6
 @capacity = 5
 @newCapacity = 10
-@quantity = 3
+@quantity = 1
 
 ### Health
 GET {{baseUrl}}/health
