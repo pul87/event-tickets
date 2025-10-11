@@ -2,9 +2,13 @@
 using System.Net;
 using System.Text.Json;
 using EventTickets.Shared;
+using Microsoft.Extensions.Logging;
 
 public sealed class ExceptionMappingMiddleware : IMiddleware
 {
+    private readonly ILogger<ExceptionMappingMiddleware> _logger;
+    public ExceptionMappingMiddleware(ILogger<ExceptionMappingMiddleware> logger) => _logger = logger;
+
     public async Task InvokeAsync(HttpContext ctx, RequestDelegate next)
     {
         try
@@ -26,6 +30,11 @@ public sealed class ExceptionMappingMiddleware : IMiddleware
         catch (InvalidOperationException ex)
         {
             await Write(ctx, HttpStatusCode.Conflict, ex.Message);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unhandled exception");
+            await Write(ctx, HttpStatusCode.InternalServerError, "Unexpected error");
         }
     }
 
