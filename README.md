@@ -269,5 +269,5 @@ A `` file is provided at the **root of the repository** for testing the API with
 
 ## License
 
-MI
+MIT
 
