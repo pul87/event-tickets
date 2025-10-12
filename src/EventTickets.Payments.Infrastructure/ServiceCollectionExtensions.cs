@@ -1,5 +1,6 @@
 // src/EventTickets.Payments.Infrastructure/ServiceCollectionExtensions.cs
 using EventTickets.Payments.Application.Abstractions;
+using EventTickets.Payments.Application.IntegrationHandlers;
 using EventTickets.Payments.Application.Queries;
 using EventTickets.Payments.Infrastructure.Outbox;
 using EventTickets.Payments.Infrastructure.Persistance;

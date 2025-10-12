@@ -5,11 +5,6 @@ using Microsoft.EntityFrameworkCore.Migrations.Operations;
 
 namespace EventTickets.Payments.Infrastructure.Services;
 
-public interface IPaymentIntentService
-{
-    Task CreateForReservationAsync(Guid reservationId, int quantity, CancellationToken ct);
-}
-
 public sealed class PaymentIntentService : IPaymentIntentService
 {
     private readonly IPaymentIntentRepository _repo;
