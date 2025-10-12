@@ -3,6 +3,9 @@
   <ItemGroup>
     <ProjectReference Include="..\EventTickets.Ticketing.Application\EventTickets.Ticketing.Application.csproj" />
     <ProjectReference Include="..\EventTickets.Ticketing.Infrastructure\EventTickets.Ticketing.Infrastructure.csproj" />
+    <ProjectReference Include="..\EventTickets.Payments.Application\EventTickets.Payments.Application.csproj" />
+    <ProjectReference Include="..\EventTickets.Payments.Infrastructure\EventTickets.Payments.Infrastructure.csproj" />
+    <ProjectReference Include="..\EventTickets.Shared\EventTickets.Shared.csproj" />
   </ItemGroup>
 
   <ItemGroup>

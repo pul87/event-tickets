@@ -15,7 +15,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ITicketingUnitOfWork, TicketingUnitOfWork>();
         services.AddScoped<IPerformanceInventoryRepository, PerformanceInventoryRepository>();
         services.AddScoped<IReservationRepository, ReservationRepository>();
-        services.AddScoped<IOutbox, EdOutbox>();
+        services.AddScoped<IOutbox, EfOutbox>();
         return services;
     }
 }

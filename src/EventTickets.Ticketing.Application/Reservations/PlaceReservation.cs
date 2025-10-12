@@ -1,6 +1,7 @@
+// src/EventTickets.Ticketing.Application/Reservations/PlaceReservation.cs
 using EventTickets.Shared;
 using EventTickets.Ticketing.Application.Abstractions;
-using EventTickets.Ticketing.Application.IntegrationEvents;
+using EventTickets.Shared.IntegrationEvents;  // ✅ AGGIUNGI
 using EventTickets.Ticketing.Domain;
 using MediatR;
 
@@ -43,7 +44,7 @@ public sealed class PlaceReservationHandler
                 var res = Reservation.Place(cmd.PerformanceId, cmd.Quantity);
                 _reservations.Add(res);
 
-                // Enqueue integration event in the same transaction
+                // ✅ USA L'EVENTO DA SHARED
                 await _outbox.EnqueueAsync(
                     new ReservationPlacedIntegrationEvent(res.Id, res.PerformanceId, res.Quantity));
 

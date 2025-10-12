@@ -1,20 +1,19 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
-    <ProjectReference Include="..\EventTickets.Ticketing.Domain\EventTickets.Ticketing.Domain.csproj" />
+    <ProjectReference Include="..\EventTickets.Payments.Application\EventTickets.Payments.Application.csproj" />
+    <ProjectReference Include="..\EventTickets.Payments.Domain\EventTickets.Payments.Domain.csproj" />
     <ProjectReference Include="..\EventTickets.Shared\EventTickets.Shared.csproj" />
-    <ProjectReference Include="..\EventTickets.Ticketing.Application\EventTickets.Ticketing.Application.csproj" />
-    <ProjectReference Include="..\EventTickets.Ticketing.Contracts\EventTickets.Ticketing.Contracts.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.9" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.9">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
     <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="9.0.9" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.4" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.9">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
   </ItemGroup>
 
   <PropertyGroup>
