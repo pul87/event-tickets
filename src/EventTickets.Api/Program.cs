@@ -66,4 +66,7 @@ InventoryEndpoints.Map(inventory);               // NEW
 var sales = app.MapGroup("/sales").WithTags("Sales");
 SalesEndpoints.Map(sales);                       // NEW
 
+var payments = app.MapGroup("/payments").WithTags("Payments");
+PaymentsEndpoints.Map(payments);
+
 app.Run();

@@ -1,10 +1,8 @@
 // src/EventTickets.Payments.Infrastructure/ServiceCollectionExtensions.cs
 using EventTickets.Payments.Application.Abstractions;
 using EventTickets.Payments.Application.IntegrationHandlers;
-using EventTickets.Payments.Application.Queries;
 using EventTickets.Payments.Infrastructure.Outbox;
 using EventTickets.Payments.Infrastructure.Persistance;
-using EventTickets.Payments.Infrastructure.Queries;
 using EventTickets.Payments.Infrastructure.Services;
 using EventTickets.Shared;
 using EventTickets.Shared.Integration;
@@ -25,7 +23,6 @@ public static class ServiceCollectionExtensions
 
         services.AddScoped<IPaymentIntentRepository, PaymentIntentRepository>();
         services.AddScoped<IPaymentUnitOfWork, PaymentUnitOfWork>();
-        services.AddScoped<IPaymentQueries, PaymentQueries>();
         services.AddScoped<IPaymentIntentService, PaymentIntentService>();
         services.AddScoped<Outbox.IOutbox, EfOutbox>(); // outbox del BC Payments
 

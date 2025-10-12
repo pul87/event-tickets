@@ -12,6 +12,9 @@ public sealed class PaymentIntentRepository : IPaymentIntentRepository
 
     public void Add(PaymentIntent intent) => _db.PaymentIntents.Add(intent);
 
+    public Task<PaymentIntent?> GetByIdAsync(Guid id, CancellationToken ct)
+        =>_db.PaymentIntents.SingleOrDefaultAsync(x => x.Id == id, ct);
+
     public Task<PaymentIntent?> GetByReservationAsync(Guid reservationId, CancellationToken ct) =>
         _db.PaymentIntents.SingleOrDefaultAsync(x => x.ReservationId == reservationId, ct);
     
