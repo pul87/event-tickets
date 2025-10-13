@@ -1,114 +1,45 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using System.Text.Json;
-using EventTickets.Shared.Integration;
 using EventTickets.Shared.Outbox;
 
 namespace EventTickets.Ticketing.Infrastructure.Outbox;
 
-public sealed class TicketingOutboxDispatcher : BackgroundService
+public sealed class TicketingOutboxDispatcher : OutboxDispatcher<TicketingDbContext>
 {
-    private readonly IServiceScopeFactory _scopeFactory;
-    private readonly ILogger<TicketingOutboxDispatcher> _logger;
-
-    public TicketingOutboxDispatcher(IServiceScopeFactory scopeFactory, ILogger<TicketingOutboxDispatcher> logger)
-        => (_scopeFactory, _logger) = (scopeFactory, logger);
-
-    protected override async Task ExecuteAsync(CancellationToken ct)
+    public TicketingOutboxDispatcher(
+        IServiceScopeFactory scopeFactory, 
+        ILogger<TicketingOutboxDispatcher> logger) 
+        : base(scopeFactory, logger)
     {
-        var delay = TimeSpan.FromSeconds(1);
-        while (!ct.IsCancellationRequested)
-        {
-            try
-            {
-                var processed = await ProcessBatchAsync(50, ct);
-                if (processed == 0)
-                    await Task.Delay(delay, ct);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Ticketing outbox dispatcher error");
-                await Task.Delay(delay, ct);
-            }
-        }
     }
 
-    private async Task<int> ProcessBatchAsync(int take, CancellationToken ct)
+    protected override async Task<List<OutboxMessage>> GetOutboxMessagesAsync(
+        TicketingDbContext db, 
+        int take, 
+        CancellationToken ct)
     {
-        using var scope = _scopeFactory.CreateScope();
-        var db = scope.ServiceProvider.GetRequiredService<TicketingDbContext>();
-        
-        var batch = await db.OutboxMessages
+        return await db.OutboxMessages
             .Where(x => x.ProcessedOnUtc == null)
             .OrderBy(x => x.OccurredOnUtc)
             .Take(take)
             .ToListAsync(ct);
-
-        if (batch.Count == 0) return 0;
-
-        foreach (var msg in batch)
-        {
-            try
-            {
-                await ProcessEventAsync(scope, msg, ct);
-                msg.ProcessedOnUtc = DateTime.UtcNow;
-            }
-            catch (Exception ex)
-            {
-                msg.Error = ex.Message;
-                _logger.LogError(ex, "Failed to process ticketing outbox message {Id}", msg.Id);
-            }
-        }
-        
-        await db.SaveChangesAsync(ct);
-        return batch.Count;
     }
 
-    private async Task ProcessEventAsync(IServiceScope scope, OutboxMessage msg, CancellationToken ct)
+    protected override Task MarkAsProcessedAsync(TicketingDbContext db, OutboxMessage msg)
     {
-        var eventType = FindEventType(msg.Type);
-        if (eventType == null)
-        {
-            _logger.LogWarning("Unknown event type: {Type}", msg.Type);
-            return;
-        }
-
-        var integrationEvent = JsonSerializer.Deserialize(msg.Content, eventType, OutboxJsonOptions.Default) as IntegrationEvent;
-        if (integrationEvent == null)
-        {
-            _logger.LogWarning("Failed to deserialize event: {Type}", msg.Type);
-            return;
-        }
-
-        // Trova e invoca l'handler appropriato
-        var handlerType = typeof(IIntegrationEventHandler<>).MakeGenericType(eventType);
-        var handler = scope.ServiceProvider.GetService(handlerType);
-        
-        if (handler != null)
-        {
-            var method = handlerType.GetMethod("HandleAsync");
-            await (Task)method!.Invoke(handler, new object[] { integrationEvent, ct })!;
-            _logger.LogInformation("Processed ticketing integration event {Type} ({Id})", msg.Type, msg.Id);
-        }
-        else
-        {
-            _logger.LogWarning("No handler found for event type: {Type}", msg.Type);
-        }
+        msg.ProcessedOnUtc = DateTime.UtcNow;
+        return Task.CompletedTask;
     }
 
-    private Type? FindEventType(string typeName)
+    protected override Task MarkAsErrorAsync(TicketingDbContext db, OutboxMessage msg, string error)
     {
-        var type = Type.GetType(typeName);
-        if (type != null) return type;
+        msg.Error = error;
+        return Task.CompletedTask;
+    }
 
-        foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
-        {
-            type = assembly.GetType(typeName);
-            if (type != null) return type;
-        }
-
-        return null;
+    protected override Task SaveChangesAsync(TicketingDbContext db, CancellationToken ct)
+    {
+        return db.SaveChangesAsync(ct);
     }
 }
