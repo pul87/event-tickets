@@ -29,6 +29,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IIntegrationEventHandler<ReservationPlacedIntegrationEvent>,
                           ReservationPlacedHandler>();
 
+        services.AddHostedService<PaymentsOutboxDispatcher>();
         return services;
     }
 }

@@ -1,4 +1,4 @@
-namespace EventTickets.Payments.Infrastructure.Outbox;
+namespace EventTickets.Shared.Outbox;
 
 public sealed class OutboxMessage
 {

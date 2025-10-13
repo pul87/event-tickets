@@ -1,6 +1,7 @@
 using System.Data;
 using EventTickets.Payments.Domain;
 using EventTickets.Shared;
+using EventTickets.Shared.Outbox;
 using Microsoft.EntityFrameworkCore;
 
 namespace EventTickets.Payments.Infrastructure;
@@ -10,7 +11,7 @@ public sealed class PaymentsDbContext : DbContext
     public PaymentsDbContext(DbContextOptions<PaymentsDbContext> options) : base(options) { }
 
     public DbSet<PaymentIntent> PaymentIntents => Set<PaymentIntent>();
-    public DbSet<Outbox.OutboxMessage> OutboxMessages => Set<Outbox.OutboxMessage>();
+    public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
 
     protected override void OnModelCreating(ModelBuilder model)
     {
@@ -24,7 +25,7 @@ public sealed class PaymentsDbContext : DbContext
         pi.Property(x => x.Status).HasConversion<string>().HasMaxLength(32);
         pi.Property(x => x.PayUrl).HasMaxLength(2048);
 
-        var ob = model.Entity<Outbox.OutboxMessage>();
+        var ob = model.Entity<OutboxMessage>();
         ob.ToTable("outbox_messages");
         ob.HasIndex(x => x.Id);
         ob.Property(x => x.Type).IsRequired().HasMaxLength(512);

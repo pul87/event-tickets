@@ -1,4 +1,5 @@
 using EventTickets.Shared;
+using EventTickets.Shared.Outbox;
 using EventTickets.Ticketing.Domain;
 using Microsoft.EntityFrameworkCore;
 
@@ -10,7 +11,7 @@ public sealed class TicketingDbContext : DbContext
 
     public DbSet<PerformanceInventory> PerformanceInventories => Set<PerformanceInventory>();
     public DbSet<Reservation> Reservations => Set<Reservation>();
-    public DbSet<Outbox.OutboxMessage> OutboxMessages => Set<Outbox.OutboxMessage>();
+    public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
 
     protected override void OnModelCreating(ModelBuilder model)
     {
@@ -36,7 +37,7 @@ public sealed class TicketingDbContext : DbContext
         r.HasIndex(x => x.PerformanceId);
 
         // Outbox
-        var ob = model.Entity<Outbox.OutboxMessage>();
+        var ob = model.Entity<OutboxMessage>();
         ob.ToTable("outbox_messages");
         ob.HasKey(x => x.Id);
         ob.Property(x => x.Type).IsRequired().HasMaxLength(512);

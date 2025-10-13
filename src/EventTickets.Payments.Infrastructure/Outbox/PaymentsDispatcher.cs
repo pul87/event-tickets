@@ -1,21 +1,19 @@
-// src/EventTickets.Api/Outbox/CentralizedOutboxDispatcher.cs
+
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System.Text.Json;
 using EventTickets.Shared.Integration;
-using EventTickets.Ticketing.Infrastructure;
-using EventTickets.Payments.Infrastructure;
+using EventTickets.Shared.Outbox;
+namespace EventTickets.Payments.Infrastructure.Outbox;
 
-namespace EventTickets.Api.Outbox;
-
-public sealed class CentralizedOutboxDispatcher : BackgroundService
+public sealed class PaymentsOutboxDispatcher : BackgroundService
 {
     private readonly IServiceScopeFactory _scopeFactory;
-    private readonly ILogger<CentralizedOutboxDispatcher> _logger;
+    private readonly ILogger<PaymentsOutboxDispatcher> _logger;
 
-    public CentralizedOutboxDispatcher(IServiceScopeFactory scopeFactory, ILogger<CentralizedOutboxDispatcher> logger)
+    public PaymentsOutboxDispatcher(IServiceScopeFactory scopeFactory, ILogger<PaymentsOutboxDispatcher> logger)
         => (_scopeFactory, _logger) = (scopeFactory, logger);
 
     protected override async Task ExecuteAsync(CancellationToken ct)
@@ -31,7 +29,7 @@ public sealed class CentralizedOutboxDispatcher : BackgroundService
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Outbox dispatcher error");
+                _logger.LogError(ex, "Payments outbox dispatcher error");
                 await Task.Delay(delay, ct);
             }
         }
@@ -40,49 +38,9 @@ public sealed class CentralizedOutboxDispatcher : BackgroundService
     private async Task<int> ProcessBatchAsync(int take, CancellationToken ct)
     {
         using var scope = _scopeFactory.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<PaymentsDbContext>();
         
-        // Processa eventi da entrambi i BC
-        var ticketingProcessed = await ProcessTicketingEventsAsync(scope, take, ct);
-        var paymentsProcessed = await ProcessPaymentsEventsAsync(scope, take, ct);
-        
-        return ticketingProcessed + paymentsProcessed;
-    }
-
-    private async Task<int> ProcessTicketingEventsAsync(IServiceScope scope, int take, CancellationToken ct)
-    {
-        var ticketingDb = scope.ServiceProvider.GetRequiredService<TicketingDbContext>();
-        
-        var batch = await ticketingDb.OutboxMessages
-            .Where(x => x.ProcessedOnUtc == null)
-            .OrderBy(x => x.OccurredOnUtc)
-            .Take(take)
-            .ToListAsync(ct);
-
-        if (batch.Count == 0) return 0;
-
-        foreach (var msg in batch)
-        {
-            try
-            {
-                await ProcessEventAsync(scope, msg, ct);
-                msg.ProcessedOnUtc = DateTime.UtcNow;
-            }
-            catch (Exception ex)
-            {
-                msg.Error = ex.Message;
-                _logger.LogError(ex, "Failed to process ticketing outbox message {Id}", msg.Id);
-            }
-        }
-        
-        await ticketingDb.SaveChangesAsync(ct);
-        return batch.Count;
-    }
-
-    private async Task<int> ProcessPaymentsEventsAsync(IServiceScope scope, int take, CancellationToken ct)
-    {
-        var paymentsDb = scope.ServiceProvider.GetRequiredService<PaymentsDbContext>();
-        
-        var batch = await paymentsDb.OutboxMessages
+        var batch = await db.OutboxMessages
             .Where(x => x.ProcessedOnUtc == null)
             .OrderBy(x => x.OccurredOnUtc)
             .Take(take)
@@ -104,23 +62,23 @@ public sealed class CentralizedOutboxDispatcher : BackgroundService
             }
         }
         
-        await paymentsDb.SaveChangesAsync(ct);
+        await db.SaveChangesAsync(ct);
         return batch.Count;
     }
 
-    private async Task ProcessEventAsync(IServiceScope scope, dynamic msg, CancellationToken ct)
+    private async Task ProcessEventAsync(IServiceScope scope, OutboxMessage msg, CancellationToken ct)
     {
         var eventType = FindEventType(msg.Type);
         if (eventType == null)
         {
-            _logger.LogWarning("Unknown event type: {Type}", (string)msg.Type);
+            _logger.LogWarning("Unknown event type: {Type}", msg.Type);
             return;
         }
 
         var integrationEvent = JsonSerializer.Deserialize(msg.Content, eventType) as IntegrationEvent;
         if (integrationEvent == null)
         {
-            _logger.LogWarning("Failed to deserialize event: {Type}", (string)msg.Type);
+            _logger.LogWarning("Failed to deserialize event: {Type}", msg.Type);
             return;
         }
 
@@ -132,21 +90,19 @@ public sealed class CentralizedOutboxDispatcher : BackgroundService
         {
             var method = handlerType.GetMethod("HandleAsync");
             await (Task)method!.Invoke(handler, new object[] { integrationEvent, ct })!;
-            _logger.LogInformation("Processed integration event {Type} ({Id})", (string)msg.Type, (Guid)msg.Id);
+            _logger.LogInformation("Processed payments integration event {Type} ({Id})", msg.Type, msg.Id);
         }
         else
         {
-            _logger.LogWarning("No handler found for event type: {Type}", (string)msg.Type);
+            _logger.LogWarning("No handler found for event type: {Type}", msg.Type);
         }
     }
 
     private Type? FindEventType(string typeName)
     {
-        // Prima prova con Type.GetType
         var type = Type.GetType(typeName);
         if (type != null) return type;
 
-        // Se non trova, cerca in tutti gli assembly caricati
         foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
         {
             type = assembly.GetType(typeName);

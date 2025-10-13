@@ -1,6 +1,6 @@
 using EventTickets.Shared.Integration;
 
-namespace EventTickets.Ticketing.Application.Abstractions;
+namespace EventTickets.Shared.Outbox;
 
 public interface IOutbox
 {

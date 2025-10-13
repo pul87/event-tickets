@@ -1,6 +1,7 @@
 // src/EventTickets.Payments.Infrastructure/Outbox/EfOutbox.cs
 using System.Text.Json;
 using EventTickets.Shared.Integration;
+using EventTickets.Shared.Outbox;
 
 namespace EventTickets.Payments.Infrastructure.Outbox;
 
@@ -12,7 +13,6 @@ public interface IOutbox
 public sealed class EfOutbox : IOutbox
 {
     private readonly PaymentsDbContext _db;
-    private static readonly JsonSerializerOptions _json = new(JsonSerializerDefaults.Web);
 
     public EfOutbox(PaymentsDbContext db) => _db = db;
 
@@ -23,7 +23,7 @@ public sealed class EfOutbox : IOutbox
             Id = @event.Id,
             OccurredOnUtc = @event.OccurredOnUtc,
             Type = @event.EventType,
-            Content = JsonSerializer.Serialize(@event, @event.GetType(), _json)
+            Content = JsonSerializer.Serialize(@event, @event.GetType(), OutboxJsonOptions.Default)
         };
 
         _db.OutboxMessages.Add(msg);

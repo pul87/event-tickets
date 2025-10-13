@@ -1,10 +1,9 @@
-using EventTickets.Ticketing.Application;          // estensione AddTicketingApplication (nuova)
-using EventTickets.Ticketing.Infrastructure;       // AddTicketingModule (già presente)
-using EventTickets.Api.Endpoints;                  // classi statiche di mapping endpoints
+using EventTickets.Ticketing.Application;
+using EventTickets.Ticketing.Infrastructure;
+using EventTickets.Api.Endpoints;
 using Microsoft.AspNetCore.OpenApi;
-using EventTickets.Ticketing.Infrastructure.Outbox;
 using EventTickets.Payments.Infrastructure;
-using EventTickets.Api.Outbox;
+using EventTickets.Payments.Application;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -27,6 +26,7 @@ var mediatrKey =
 
 // Application: registra tutti gli handler MediatR dall'assembly Application
 builder.Services.AddTicketingApplication(mediatrKey);
+builder.Services.AddPaymentsApplication(mediatrKey);
 
 // API goodies
 builder.Services.AddEndpointsApiExplorer();
@@ -34,8 +34,6 @@ builder.Services.AddSwaggerGen();
 
 // Middleware: mapping eccezioni → HTTP (già nel progetto)
 builder.Services.AddTransient<ExceptionMappingMiddleware>();
-// Outbox dispatcher
-builder.Services.AddHostedService<CentralizedOutboxDispatcher>();
 
 var app = builder.Build();
 
