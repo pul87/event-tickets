@@ -1,6 +1,6 @@
 using EventTickets.Shared.Integration;
 
-namespace EventTickets.Payments.Application.Integration;
+namespace EventTickets.Shared.IntegrationEvents;
 
 public sealed record PaymentRequestedIntegrationEvent(
     Guid ReservationId,

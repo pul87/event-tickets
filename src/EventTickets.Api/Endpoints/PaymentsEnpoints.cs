@@ -22,6 +22,31 @@ public static class PaymentsEndpoints
             .Produces(StatusCodes.Status404NotFound)
             .WithOpenApi();
             
+        group.MapPost("/payments/webhooks",
+            async Task<Results<Ok<ProcessWebhookResult>, BadRequest<string>, NotFound>> (
+                ProcessWebhook request, 
+                IMediator mediator, 
+                CancellationToken ct) =>
+            {
+                try
+                {
+                    var result = await mediator.Send(request, ct);
+                    
+                    if (result is null)
+                        return TypedResults.NotFound();
+                        
+                    return TypedResults.Ok(result);
+                }
+                catch (Exception ex)
+                {
+                    return TypedResults.BadRequest(ex.Message);
+                }
+            })
+            .Produces<ProcessWebhookResult>(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status400BadRequest)
+            .Produces(StatusCodes.Status404NotFound)
+            .WithOpenApi();
         return group;
     }
 }
+

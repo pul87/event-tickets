@@ -1,6 +1,6 @@
 namespace EventTickets.Payments.Domain;
 
-public enum PaymentStatus { Requested, Authorized, Captured, Failed, Canceled }
+public enum PaymentStatus { Requested, Captured, Failed, Canceled }
 
 public sealed class PaymentIntent
 {
@@ -20,7 +20,6 @@ public sealed class PaymentIntent
     public static PaymentIntent Create(Guid reservationId, decimal amount, string payUrl)
         => new(reservationId, amount, payUrl);
 
-    public void Authorize() { Status = PaymentStatus.Authorized; UpdatedAtUtc = DateTime.UtcNow; }
     public void Capture() { Status = PaymentStatus.Captured; UpdatedAtUtc = DateTime.UtcNow; }
     public void Fail() { Status = PaymentStatus.Failed; UpdatedAtUtc = DateTime.UtcNow; }
     public void Cancel() { Status = PaymentStatus.Canceled; UpdatedAtUtc = DateTime.UtcNow; }
