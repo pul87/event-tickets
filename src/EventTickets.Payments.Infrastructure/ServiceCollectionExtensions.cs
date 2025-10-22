@@ -5,7 +5,6 @@ using EventTickets.Payments.Infrastructure.Outbox;
 using EventTickets.Payments.Infrastructure.Persistance;
 using EventTickets.Payments.Infrastructure.Services;
 using EventTickets.Shared;
-using EventTickets.Shared.Integration;
 using EventTickets.Shared.IntegrationEvents;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;

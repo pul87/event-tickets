@@ -1,7 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using EventTickets.Shared.Integration;
+using EventTickets.Shared.IntegrationEvents;
 
 namespace EventTickets.Shared.Outbox;
 

@@ -1,5 +1,5 @@
 using System.Text.Json;
-using EventTickets.Shared.Integration;
+using EventTickets.Shared.IntegrationEvents;
 using EventTickets.Shared.Outbox;
 using EventTickets.Ticketing.Application.Abstractions;
 

@@ -1,4 +1,4 @@
-namespace EventTickets.Shared.Integration;
+namespace EventTickets.Shared.IntegrationEvents;
 
 public abstract record IntegrationEvent
 {

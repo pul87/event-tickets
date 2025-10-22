@@ -1,7 +1,6 @@
 using EventTickets.Ticketing.Application;
 using EventTickets.Ticketing.Infrastructure;
 using EventTickets.Api.Endpoints;
-using Microsoft.AspNetCore.OpenApi;
 using EventTickets.Payments.Infrastructure;
 using EventTickets.Payments.Application;
 
@@ -21,18 +20,16 @@ builder.Services.AddPaymentsModule(conn);
 // Mediatr license key
 var mediatrKey =
     builder.Configuration["MediatR:LicenseKey"] ??
-    // in caso di typo
+    // in caso di typo nel nome della chiave (come spesso succede)
     builder.Configuration["Mediatr:LicenseKey"];
 
 // Application: registra tutti gli handler MediatR dall'assembly Application
 builder.Services.AddTicketingApplication(mediatrKey);
 builder.Services.AddPaymentsApplication(mediatrKey);
 
-// API goodies
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// Middleware: mapping eccezioni → HTTP (già nel progetto)
 builder.Services.AddTransient<ExceptionMappingMiddleware>();
 
 var app = builder.Build();

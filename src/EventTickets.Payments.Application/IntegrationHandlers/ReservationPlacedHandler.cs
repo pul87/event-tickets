@@ -1,5 +1,4 @@
 using EventTickets.Payments.Application.Abstractions;
-using EventTickets.Shared.Integration;
 using EventTickets.Shared.IntegrationEvents;
 
 namespace EventTickets.Payments.Application.IntegrationHandlers;

@@ -8,7 +8,6 @@ public static class InventoryEndpoints
 {
     public static RouteGroupBuilder Map(this RouteGroupBuilder group)
     {
-        // POST /inventory/performances → 201
         group.MapPost("/performances",
             async (CreateInventoryRequest body, IMediator mediator, CancellationToken ct) =>
             {
@@ -20,7 +19,6 @@ public static class InventoryEndpoints
             .ProducesProblem(StatusCodes.Status422UnprocessableEntity)
             .WithOpenApi();
 
-        // PUT /inventory/performances/{id}/capacity → 204
         group.MapPut("/performances/{performanceId:guid}/capacity",
             async (Guid performanceId, ResizeCapacityRequest body, IMediator mediator, CancellationToken ct) =>
             {
@@ -33,7 +31,6 @@ public static class InventoryEndpoints
             .ProducesProblem(StatusCodes.Status422UnprocessableEntity)
             .WithOpenApi();
 
-        // GET /inventory/performances/{id} → 200/404
         group.MapGet("/performances/{id:guid}",
             async Task<Results<Ok<PerformanceInventoryDto>, NotFound>> (Guid id, IMediator mediator, CancellationToken ct) =>
             {
@@ -47,7 +44,6 @@ public static class InventoryEndpoints
         return group;
     }
 
-    // DTO di API (contratti HTTP), separati dai Command
     public sealed record CreateInventoryRequest(Guid PerformanceId, int Capacity);
     public sealed record ResizeCapacityRequest(int NewCapacity);
 }

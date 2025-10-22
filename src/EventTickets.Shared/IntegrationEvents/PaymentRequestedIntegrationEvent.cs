@@ -1,4 +1,4 @@
-using EventTickets.Shared.Integration;
+using EventTickets.Shared.IntegrationEvents;
 
 namespace EventTickets.Shared.IntegrationEvents;
 

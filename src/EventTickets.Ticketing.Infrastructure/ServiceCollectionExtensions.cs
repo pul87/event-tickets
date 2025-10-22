@@ -3,6 +3,8 @@ using Microsoft.Extensions.DependencyInjection;
 using EventTickets.Ticketing.Application.Abstractions;
 using EventTickets.Shared.Outbox;
 using EventTickets.Ticketing.Infrastructure.Outbox;
+using EventTickets.Ticketing.Application.IntegrationHandlers;
+using EventTickets.Shared.IntegrationEvents;
 
 namespace EventTickets.Ticketing.Infrastructure;
 
@@ -17,6 +19,9 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IPerformanceInventoryRepository, PerformanceInventoryRepository>();
         services.AddScoped<IReservationRepository, ReservationRepository>();
         services.AddScoped<IOutbox, EfOutbox>();
+
+        services.AddScoped<IIntegrationEventHandler<PaymentResultIntegrationEvent>,
+                          PaymentResultHandler>();
 
         services.AddHostedService<TicketingOutboxDispatcher>();
         return services;

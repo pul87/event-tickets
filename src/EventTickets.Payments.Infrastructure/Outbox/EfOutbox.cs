@@ -1,6 +1,6 @@
 // src/EventTickets.Payments.Infrastructure/Outbox/EfOutbox.cs
 using System.Text.Json;
-using EventTickets.Shared.Integration;
+using EventTickets.Shared.IntegrationEvents;
 using EventTickets.Shared.Outbox;
 
 namespace EventTickets.Payments.Infrastructure.Outbox;
