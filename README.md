@@ -1,11 +1,7 @@
-# EventTickets (Ticketing)
-
-
-
-
+# EventTickets
 
 A modular monolith implemented with **DDD** (Domain/Application/Infrastructure), **CQRS with MediatR**, and **EF Core** on PostgreSQL.\
-Single Bounded Context: **Ticketing** (aggregates: `PerformanceInventory`, `Reservation`) under one DB schema: `ticketing`.
+Two Bounded Contexts: **Ticketing** and **Payments** with separate DB schemas: `ticketing` and `payments`.
 
 ## Table of contents
 
@@ -23,13 +19,14 @@ Single Bounded Context: **Ticketing** (aggregates: `PerformanceInventory`, `Rese
 
 ## Architecture
 
-- **Modular Monolith** with a single BC: `Ticketing`
+- **Modular Monolith** with two BCs: `Ticketing` and `Payments`
 - **DDD layers**
   - **Domain**: aggregates, invariants, value objects, domain exceptions
   - **Application**: commands/queries + handlers (`MediatR`), ports (repos/UoW)
-  - **Infrastructure**: EF Core `TicketingDbContext`, repositories, UoW, DI extension
+  - **Infrastructure**: EF Core DbContexts, repositories, UoW, DI extensions
   - **API**: minimal APIs only call `IMediator`; no EF usage here
-- **Persistence**: PostgreSQL, schema `ticketing`, optimistic concurrency via Postgres `xmin` (`IsRowVersion()`)
+- **Persistence**: PostgreSQL with separate schemas (`ticketing`, `payments`), optimistic concurrency via Postgres `xmin` (`IsRowVersion()`)
+- **Integration**: Cross-BC communication via integration events and outbox pattern
 
 ## Project structure
 
@@ -39,24 +36,38 @@ src/
     Endpoints/
       InventoryEndpoints.cs
       SalesEndpoints.cs
+      PaymentsEnpoints.cs
     ExceptionMappingMiddleware.cs
-  EventTickets.Ticketing.Application/   # Use cases (MediatR), ports
+  EventTickets.Ticketing.Application/   # Ticketing use cases (MediatR), ports
     Abstractions/
     Inventory/ (Create/Resize/Get)
     Reservations/ (Place/Confirm/Cancel)
+    IntegrationHandlers/
     DependencyInjection.cs              # AddTicketingApplication()
-  EventTickets.Ticketing.Domain/        # Aggregates + rules
+  EventTickets.Ticketing.Domain/        # Ticketing aggregates + rules
     PerformanceInventory.cs
     Reservation.cs
-  EventTickets.Ticketing.Infrastructure/# EF Core & DI extension
+  EventTickets.Ticketing.Infrastructure/# Ticketing EF Core & DI
     TicketingDbContext.cs
     Persistence/
-      PerformanceInventoryRepository.cs
-      ReservationRepository.cs
-      TicketingUnitOfWork.cs
+    Outbox/
     ServiceCollectionExtensions.cs      # AddTicketingModule()
-  EventTickets.Shared/                  # Cross-cutting exceptions/types
-    DomainException.cs, NotFoundException.cs, ConcurrencyException.cs
+  EventTickets.Payments.Application/    # Payments use cases (MediatR), ports
+    Abstractions/
+    PaymentIntents/ (Get/ProcessWebhook)
+    IntegrationHandlers/
+    DependencyInjection.cs              # AddPaymentsApplication()
+  EventTickets.Payments.Domain/         # Payments aggregates + rules
+    PaymentIntent.cs
+  EventTickets.Payments.Infrastructure/# Payments EF Core & DI
+    PaymentsDbContext.cs
+    Persistence/
+    Outbox/
+    ServiceCollectionExtensions.cs      # AddPaymentsModule()
+  EventTickets.Shared/                  # Cross-cutting concerns
+    AggregateRoot.cs, DomainException.cs
+    IntegrationEvents/
+    Outbox/
 ```
 
 ---
@@ -81,12 +92,13 @@ Set the connection string in `src/EventTickets.Api/appsettings.json`:
 }
 ```
 
-Bring up Postgres (example `docker-compose.yml`):
+Bring up Postgres with Adminer (example `docker-compose.yml`):
 
 ```yaml
 services:
   postgres:
     image: postgres:16-alpine
+    container_name: eventtickets-postgres
     environment:
       POSTGRES_USER: et
       POSTGRES_PASSWORD: etpwd
@@ -95,6 +107,19 @@ services:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U et -d eventtickets"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+  adminer:
+    image: adminer
+    container_name: eventtickets-adminer
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
 volumes:
   pgdata:
 ```
@@ -110,8 +135,9 @@ docker compose up -d
 ```bash
 dotnet build
 dotnet run --project src/EventTickets.Api
-# Swagger UI → http://localhost:5108/swagger
-# Health     → http://localhost:5108/health
+# Swagger UI → http://localhost:5000/swagger
+# Health     → http://localhost:5000/health
+# Adminer    → http://localhost:8080 (database admin)
 ```
 
 > If your ASP.NET profile binds to a different port, adjust Postman/Swagger accordingly.
@@ -120,7 +146,9 @@ dotnet run --project src/EventTickets.Api
 
 ## Database & migrations
 
-Migrations live in **Infrastructure**.
+Migrations live in **Infrastructure** projects.
+
+### Ticketing migrations
 
 Create a migration:
 
@@ -139,7 +167,26 @@ dotnet ef database update \
   -s src/EventTickets.Api
 ```
 
-> Tip: If you prefer design-time independence, add an `IDesignTimeDbContextFactory<TicketingDbContext>` in Infrastructure.
+### Payments migrations
+
+Create a migration:
+
+```bash
+dotnet ef migrations add InitialPayments \
+  -p src/EventTickets.Payments.Infrastructure \
+  -s src/EventTickets.Api \
+  -o Migrations
+```
+
+Apply:
+
+```bash
+dotnet ef database update \
+  -p src/EventTickets.Payments.Infrastructure \
+  -s src/EventTickets.Api
+```
+
+> Tip: If you prefer design-time independence, add an `IDesignTimeDbContextFactory` in each Infrastructure project.
 
 ---
 
@@ -185,6 +232,26 @@ dotnet ef database update \
 - **POST** `/sales/reservations/{id}/cancel` → cancel\
   `204 No Content`
 
+### Payments
+
+- **GET** `/payments/intents/{reservationId}` → get payment intent\
+  `200 OK` → `{ "id": "...", "reservationId": "...", "amount": 150.00, "payUrl": "...", "status": "Requested" }`
+
+- **POST** `/payments/webhooks` → process payment webhook\
+  Body:
+
+  ```json
+  {
+    "eventType": "PaymentSucceeded",
+    "paymentIntentId": "GUID",
+    "providerTransactionId": "txn_123",
+    "amount": 150.00,
+    "timestamp": "2024-01-01T00:00:00Z"
+  }
+  ```
+
+  `200 OK` → `{ "success": true, "newStatus": "Captured" }`
+
 ### Error mapping (middleware)
 
 - `NotFoundException` → **404**
@@ -202,8 +269,9 @@ dotnet ef database update \
   - Infrastructure → Application, Domain, Shared
   - Domain → (optionally) Shared only
 - **No EF in API.** Only `IMediator` calls.
+- **Cross-BC Communication**: Integration events via outbox pattern
 - **Conventional Commits** (suggested):
-  - `feat: initial Ticketing API with DDD layers (Api/Application/Domain/Infrastructure)`
+  - `feat: add Payments BC with webhook processing`
 - **.gitignore / .dockerignore** present
 - **Swagger**: `Swashbuckle.AspNetCore` + `Microsoft.AspNetCore.OpenApi` (v8.x for .NET 8)
 
@@ -215,8 +283,8 @@ From MediatR **v13**, a license key is required. The **Community** license is fr
 
 **How we wire it (already in this repo):**
 
-- `Ticketing.Application.AddTicketingApplication(string? mediatrLicenseKey)` accepts a key and sets `cfg.LicenseKey`.
-- `Program.cs` reads the key from configuration and passes it to the method.
+- `Ticketing.Application.AddTicketingApplication(string? mediatrLicenseKey)` and `Payments.Application.AddPaymentsApplication(string? mediatrLicenseKey)` accept a key and set `cfg.LicenseKey`.
+- `Program.cs` reads the key from configuration and passes it to both methods.
 
 **Set the key locally (User Secrets – API project):**
 
@@ -241,8 +309,8 @@ $env:MEDIATR__LICENSEKEY="YOUR-KEY-HERE"
 
 ## Troubleshooting
 
-- ``\
-  You’re likely mixing DbContexts/connections. In this repo we use a **single DbContext** (Ticketing), so this should not occur.
+- **DbContext conflicts**\
+  You're likely mixing DbContexts/connections. In this repo we use **two DbContexts** (Ticketing, Payments) with separate schemas, so ensure proper connection string configuration.
 
 - ``\
   Install **8.x**:\

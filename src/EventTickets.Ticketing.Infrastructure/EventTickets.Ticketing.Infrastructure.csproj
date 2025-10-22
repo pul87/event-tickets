@@ -4,7 +4,6 @@
     <ProjectReference Include="..\EventTickets.Ticketing.Domain\EventTickets.Ticketing.Domain.csproj" />
     <ProjectReference Include="..\EventTickets.Shared\EventTickets.Shared.csproj" />
     <ProjectReference Include="..\EventTickets.Ticketing.Application\EventTickets.Ticketing.Application.csproj" />
-    <ProjectReference Include="..\EventTickets.Ticketing.Contracts\EventTickets.Ticketing.Contracts.csproj" />
   </ItemGroup>
 
   <ItemGroup>

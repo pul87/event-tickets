@@ -21,8 +21,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventTickets.Payments.Appli
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventTickets.Payments.Infrastructure", "src\EventTickets.Payments.Infrastructure\EventTickets.Payments.Infrastructure.csproj", "{DCC86B03-D9B1-458B-A572-12242B218355}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventTickets.Ticketing.Contracts", "src\EventTickets.Ticketing.Contracts\EventTickets.Ticketing.Contracts.csproj", "{CCCA1FEB-0DC1-49CD-9A47-90ED48AE5CAA}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -64,10 +62,6 @@ Global
 		{DCC86B03-D9B1-458B-A572-12242B218355}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DCC86B03-D9B1-458B-A572-12242B218355}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DCC86B03-D9B1-458B-A572-12242B218355}.Release|Any CPU.Build.0 = Release|Any CPU
-		{CCCA1FEB-0DC1-49CD-9A47-90ED48AE5CAA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{CCCA1FEB-0DC1-49CD-9A47-90ED48AE5CAA}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{CCCA1FEB-0DC1-49CD-9A47-90ED48AE5CAA}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{CCCA1FEB-0DC1-49CD-9A47-90ED48AE5CAA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{99D5B7FE-FEC7-46C8-B85C-86C31D8DD3EE} = {0FA1FB80-FCF4-4B58-9F4A-8C1EF0EB1C9B}
@@ -78,6 +72,5 @@ Global
 		{941E417E-D9D5-4F40-9CFF-24EF1A95D394} = {0FA1FB80-FCF4-4B58-9F4A-8C1EF0EB1C9B}
 		{7004489B-4323-4120-86D1-E022430B4ABF} = {0FA1FB80-FCF4-4B58-9F4A-8C1EF0EB1C9B}
 		{DCC86B03-D9B1-458B-A572-12242B218355} = {0FA1FB80-FCF4-4B58-9F4A-8C1EF0EB1C9B}
-		{CCCA1FEB-0DC1-49CD-9A47-90ED48AE5CAA} = {0FA1FB80-FCF4-4B58-9F4A-8C1EF0EB1C9B}
 	EndGlobalSection
 EndGlobal
