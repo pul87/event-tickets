@@ -1,11 +1,11 @@
 # 1) crea una performance con capienza 5
 $perf = [guid]::NewGuid()
-Invoke-RestMethod -Method POST http://localhost:5108/inventory/performances `
+Invoke-RestMethod -Method POST http://localhost:5000/inventory/performances `
   -ContentType application/json `
   -Body (@{ performanceId=$perf; capacity=5 } | ConvertTo-Json) | Out-Null
 
 # 2) prepara le due chiamate concorrenti: quantity=3 e quantity=3
-$uri = "http://localhost:5108/sales/reservations"
+$uri = "http://localhost:5000/sales/reservations"
 $body = (@{ performanceId=$perf; quantity=3 } | ConvertTo-Json)
 
 $script = {
@@ -28,5 +28,5 @@ $codes
 # atteso: uno 201, uno 409
 
 # 4) controlla l'inventario
-Invoke-RestMethod "http://localhost:5108/inventory/performances/$perf"
+Invoke-RestMethod "http://localhost:5000/inventory/performances/$perf"
 # atteso: Reserved=3, Sold=0, Capacity=5

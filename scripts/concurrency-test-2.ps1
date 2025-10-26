@@ -1,10 +1,10 @@
 # capienza 5
 $perf2 = [guid]::NewGuid()
-Invoke-RestMethod -Method POST http://localhost:5108/inventory/performances `
+Invoke-RestMethod -Method POST http://localhost:5000/inventory/performances `
   -ContentType application/json `
   -Body (@{ performanceId=$perf2; capacity=5 } | ConvertTo-Json) | Out-Null
 
-$uri = "http://localhost:5108/sales/reservations"
+$uri = "http://localhost:5000/sales/reservations"
 $body = (@{ performanceId=$perf2; quantity=1 } | ConvertTo-Json)
 
 $script = {
@@ -23,5 +23,5 @@ $success = ($codes | Where-Object { $_ -eq 201 }).Count
 $conflict = ($codes | Where-Object { $_ -eq 409 }).Count
 "success: $success, conflict: $conflict, all: $($codes.Count)"
 
-Invoke-RestMethod "http://localhost:5108/inventory/performances/$perf2"
+Invoke-RestMethod "http://localhost:5000/inventory/performances/$perf2"
 # atteso: Reserved = 5
